@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Jcala.iml" filepath="$PROJECT_DIR$/.idea/modules/Jcala.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Jcala-build.iml" filepath="$PROJECT_DIR$/.idea/modules/Jcala-build.iml" />
+    </modules>
+  </component>
+</project>
