@@ -1,4 +1,10 @@
 #Janac tings
+target
+target/
+target/*
+project/
+project/*
+project
 project/target/config-classes/
 project/target/config-classes/*
 .idea
@@ -8,6 +14,26 @@ project/target/config-classes/*
 
 # Created by https://www.gitignore.io/api/windows,intellij
 # Edit at https://www.gitignore.io/?templates=windows,intellij
+
+### Vim ###
+# Swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session
+Session.vim
+
+# Temporary
+.netrwhist
+*~
+# Auto-generated tag files
+tags
+# Persistent undo
+[._]*.un~
+
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
