@@ -1,7 +1,26 @@
 object Recursions {
   def permute(str: String): Set[Any] = {
 //    permuteIteratively(str).split(",").map(_.trim).toSet
-    permuteScala(str).mkString("\n").split("\n").toSet
+    permuteRecursively(str)
+//    permuteScala(str).mkString("\n").split("\n").toSet
+    Set("")
+  }
+  def permuteRecursively(input: String): Unit ={
+    permuteRecursively("", input)
+  }
+
+  def permuteRecursively(prefix: String, word: String): Unit ={
+    println(s"prefix: $prefix \n word: $word")
+    println()
+    if (word.isEmpty) println(prefix + word)
+    else {
+      for (i <- 0 to word.length -1){
+        permuteRecursively(
+          prefix + word.charAt(i),
+          word.substring(0, i) + word.substring(i + 1, word.length)
+        )
+      }
+    }
   }
 
   def permuteScala(str: String): Set[Any] = {
@@ -26,4 +45,6 @@ object Recursions {
   def permuteTwo(str: String) : Set[String] = {
     Set(str.head + str.tail , str.tail + str.head)
   }
+
+
 }
