@@ -46,5 +46,23 @@ object Recursions {
     Set(str.head + str.tail , str.tail + str.head)
   }
 
+  def factorial(n: Int): Int = {
+    var result = 0
+    if (n==1)
+      result = 1
+    else {
+      result = factorial(n-1) * n
+      //      f(3) = f(3-1) * 3
+      //      f(3) = f(2) * 3
+      //      f(3) = (f(2-1) * 2) * 3
+      //      f(3) = (f(1) * 2) * 3
+      //      f(3) = (1* 2) *3
+      //      f(3) = (2 * 3)
+      //      f(3) = 6
+
+    }
+    result
+  }
+
 
 }
