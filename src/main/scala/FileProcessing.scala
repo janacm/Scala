@@ -1,5 +1,6 @@
-import java.io.{File, IOException, PrintWriter}
-import java.nio.file.{Files, Path, Paths, StandardOpenOption}
+import java.io.{BufferedOutputStream, IOException, OutputStream, PrintWriter}
+import java.nio.file.{Files, Path, Paths }
+
 
 /**
   * 1) Creates 3 folders (if not exists):
@@ -34,19 +35,31 @@ def createDirs(): Unit = {
   /*
   * Takes all files in the toMergeFolder and combines them into one large file in the mergedFolder
   *
-  * 1) Creates a newFile-timestamp.txt in the ./output folder
-  * 2) Appends all of the files inside the ./toMerge folder to the newFile-timestamp.txt
-  * 3) Clears ./toMerge directory using deleteIfExists, to avoid throwing exceptions
+  * 1) Appends all of the files named input/file.txt.split# to output/file.txt
+  * 2) Clears ./splitFiles directory using deleteIfExists, to avoid throwing exceptions
   * */
   def mergeFiles(): Unit = {
+    val mergedFile: Path = Paths.get("output/t1.txt") // TODO: add file name generically
+    val mergedFileStream: OutputStream = new BufferedOutputStream(Files.newOutputStream(mergedFile))
+    val dirStream = Files.newDirectoryStream(Paths.get("splitFiles"))
+
     try {
-      Files.write(Paths.get("myfile.txt"), "the text".getBytes(), StandardOpenOption.APPEND)
+      dirStream.forEach(file => {
+        val it = Files.readAllLines(file).iterator()
+        var currentSplitFile = ""
+        while (it.hasNext){
+          currentSplitFile += it.next()
+        }
+        val splitAsBytes = currentSplitFile.getBytes()
+
+        mergedFileStream.write(splitAsBytes, 0, splitAsBytes.length)
+      })
     } catch {
       case ioe: IOException => println(s"IOException thrown: $ioe")
       case e: Exception => println(s"Non-IOException thrown: $e")
+    } finally {
+      dirStream.close()
+      mergedFileStream.close()
     }
   }
-
-
-
 }

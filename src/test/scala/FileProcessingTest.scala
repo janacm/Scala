@@ -39,7 +39,8 @@ class FileProcessingTest extends FlatSpec with BeforeAndAfter{
   "2 files in the splitFiles folder" should "be merged and stored as one file in " in {
     FileProcessing.mergeFiles()
     val mergedFile = Paths.get("output/t1.txt")
-    assert(Files.readAllLines(mergedFile).get(0).equals("testFile1testFile2"))
+    val allLines= Files.readAllLines(mergedFile)
+    assert(!allLines.isEmpty && allLines.get(0).equals("testFile1testFile2"))
 
   }
 
