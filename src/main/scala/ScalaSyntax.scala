@@ -10,6 +10,7 @@ object ScalaSyntax {
     val pList: List[PhoneExt] = List(PhoneExt("jan", 1), PhoneExt("pradriga", 2))
     System.out.println(pList.filter {case PhoneExt(_, extension) => extension >1})
 
+
   }
 
 }

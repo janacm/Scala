@@ -1,4 +1,4 @@
-import java.io.IOException
+import java.io.{File, IOException, PrintWriter}
 import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 
 /**
@@ -21,9 +21,15 @@ def createDirs(): Unit = {
   if (Files.notExists(inputPath)) Files.createDirectory(inputPath)
   if (Files.notExists(splitFilesPath)) Files.createDirectory(splitFilesPath)
   if (Files.notExists(outputPath)) Files.createDirectory(outputPath)
-
   println("Created dirs")
+
 }
+
+  def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit): Unit ={
+    val p = new PrintWriter(f)
+    try {op(p)}
+    finally {p.close()}
+  }
 
   /*
   * Takes all files in the toMergeFolder and combines them into one large file in the mergedFolder
