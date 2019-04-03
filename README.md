@@ -8,5 +8,6 @@ In particular, I'm working on a way to maximize network usage when transferring 
 Technologies used
 - ScalaTest
 - Java.NIO
+- Akka HTTP for web server
 
 
