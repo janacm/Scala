@@ -2,18 +2,21 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
+import akka.http.scaladsl.model.HttpMethods._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import akka.util.ByteString
 import spray.json.DefaultJsonProtocol._
+import spray.json.RootJsonFormat
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
 
 object WebServer {
     implicit val system: ActorSystem = ActorSystem("janacSystem")
-    implicit val materializer = ActorMaterializer()
-    implicit val executionContext = system.dispatcher
+    implicit val materializer: ActorMaterializer = ActorMaterializer()
+    implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
     var orders: List[Item] = Nil
 
@@ -22,8 +25,8 @@ object WebServer {
     final case class Order(items: List[Item])
 
 //    Formats for un/marshalling
-    implicit val itemFormat = jsonFormat2(Item)
-    implicit val orderFormat = jsonFormat1(Order)
+    implicit val itemFormat: RootJsonFormat[Item] = jsonFormat2(Item)
+    implicit val orderFormat: RootJsonFormat[Order] = jsonFormat1(Order)
 
 //    Fake async db query api
     def fetchItem(itemId: Long): Future[Option[Item]] = Future {
@@ -39,6 +42,19 @@ object WebServer {
     }
 
   def main (args: Array[String]): Unit ={
+
+    val homeUri = Uri("/abc")
+    HttpRequest(GET, uri = homeUri)
+    HttpRequest(GET, uri = "/index")
+
+    val data = ByteString("abc")
+    HttpRequest(POST, uri = "/receive", entity = data)
+
+
+
+
+
+
     val route=
       get {
         pathPrefix("item" /  LongNumber){ id =>
