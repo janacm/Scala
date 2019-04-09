@@ -1,11 +1,22 @@
+import java.io.File
+
+import akka.http.scaladsl.server._
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 import akka.Done
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.{HttpRequest, StatusCodes, Uri}
+import akka.http.scaladsl.model.{HttpRequest, Multipart, StatusCodes, Uri}
 import akka.http.scaladsl.model.HttpMethods._
+
+import scala.concurrent.duration._
+import akka.http.scaladsl.model.Multipart.BodyPart
+import akka.http.scaladsl.model.headers.LinkParams.title
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
+import akka.stream.scaladsl.{FileIO, Framing}
 import akka.util.ByteString
 import spray.json.DefaultJsonProtocol._
 import spray.json.RootJsonFormat
@@ -43,18 +54,6 @@ object WebServer {
 
   def main (args: Array[String]): Unit ={
 
-    val homeUri = Uri("/abc")
-    HttpRequest(GET, uri = homeUri)
-    HttpRequest(GET, uri = "/index")
-
-    val data = ByteString("abc")
-    HttpRequest(POST, uri = "/receive", entity = data)
-
-
-
-
-
-
     val route=
       get {
         pathPrefix("item" /  LongNumber){ id =>
@@ -76,6 +75,71 @@ object WebServer {
           }
         }
       }
+
+    val highLevelDirectiveRoute =
+      extractRequestContext{ ctx =>
+        implicit val materializer = ctx.materializer
+
+        fileUpload("csv"){
+          case (metadata, byteSource) =>
+
+            val sumF: Future[Int] =
+              // sum the numbers as they arrive so we can accept any file size
+              byteSource.via(Framing.delimiter(ByteString("\n"), 1024))
+                .mapConcat(_.utf8String.split(",").toVector)
+                .map(_.toInt)
+                .runFold(0) { (acc, n) => acc + n }
+            onSuccess(sumF) { sum=> complete(s"Sum: $sum")}
+
+          case _ =>
+            complete("yo")
+        }
+      }
+
+
+//    val uploadVideo =
+//      path("video") {
+//        entity(as[Multipart.FormData]) { formData =>
+//
+//          // collect all parts of the multipart as it arrives into a map
+//          val allPartsF: Future[Map[String, Any]] = formData.parts.mapAsync[(String, Any)](1) {
+//
+//            case b: BodyPart if b.name == "file" =>
+//              // stream into a file as the chunks of it arrives and return a future
+//              // file to where it got stored
+//              val file = File.createTempFile("upload", "tmp")
+//              b.entity.dataBytes.runWith(FileIO.toPath(file.toPath)).map(_ =>
+//                (b.name -> file))
+//
+//            case b: BodyPart =>
+//              // collect form field values
+//              b.toStrict(2.seconds).map(strict =>
+//                (b.name -> strict.entity.data.utf8String))
+//
+//          }.runFold(Map.empty[String, Any])((map, tuple) => map + tuple)
+//
+//          val done = allPartsF.map { allParts =>
+//            // You would have some better validation/unmarshalling here
+//            db.create(Video(
+//              file = allParts("file").asInstanceOf[File],
+//              title = allParts("title").asInstanceOf[String],
+//              author = allParts("author").asInstanceOf[String]))
+//          }
+//
+//          // when processing have finished create a response for the user
+//          onSuccess(allPartsF) { allParts =>
+//            complete {
+//              "ok!"
+//            }
+//          }
+//        }
+//      }
+
+
+    case class Video(file: File, title: String, author: String)
+    object db {
+      def create(video: Video): Future[Unit] = Future.successful(Unit)
+    }
 
     val bindingFuture = Http().bindAndHandle(route, "localhost", 8080)
 
