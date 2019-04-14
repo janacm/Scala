@@ -47,16 +47,24 @@ object WebServer {
   def main (args: Array[String]): Unit ={
 
     val route=
-      get {
-        pathPrefix("item" /  LongNumber){ id =>
-          val maybeItem: Future[Option[Item]] = fetchItem(id)
-
-          onSuccess(maybeItem){
-            case Some(item) => complete(item)
-            case None       => complete(StatusCodes.NotFound)
+      path("query") {
+        get {
+          parameters('sliceNumber.as[String]) {
+            sliceNumber =>
+              complete(s"sliceNumber: $sliceNumber ")
           }
         }
       } ~
+        get {
+          pathPrefix("item" /  LongNumber){ id =>
+            val maybeItem: Future[Option[Item]] = fetchItem(id)
+
+            onSuccess(maybeItem){
+              case Some(item) => complete(item)
+              case None       => complete(StatusCodes.NotFound)
+            }
+          }
+        } ~
         post {
           path("create-order"){
             entity(as[Order]) { order =>
