@@ -44,4 +44,9 @@ class FileProcessingTest extends FlatSpec with BeforeAndAfter{
 
   }
 
+  "split files" should "return the number of files that have been split" in {
+    val numOfPieces = FileProcessing.getNumOfSplitFiles()
+    assert(numOfPieces == 2)
+  }
+
 }

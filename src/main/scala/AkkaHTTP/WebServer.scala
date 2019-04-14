@@ -16,6 +16,8 @@ import spray.json.RootJsonFormat
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.io.StdIn
 
+import FileProcessing.getNumOfSplitFiles
+
 object WebServer {
   implicit val system: ActorSystem = ActorSystem("janacSystem")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
@@ -44,17 +46,25 @@ object WebServer {
     Future { Done }
   }
 
-  def main (args: Array[String]): Unit ={
+
+  def main(args: Array[String]): Unit ={
 
     val route=
-      path("query") {
+    //      Initiates parallel transfer, and file splitting.
+      path("getFile") {
         get {
-          parameters('sliceNumber.as[String]) {
-            sliceNumber =>
-              complete(s"sliceNumber: $sliceNumber ")
-          }
+          val numOfSplits = getNumOfSplitFiles()
+          complete(numOfSplits.toString)
         }
       } ~
+        path("query") {
+          get {
+            parameters('sliceNumber.as[String]) {
+              sliceNumber =>
+                complete(s"sliceNumber: $sliceNumber ")
+            }
+          }
+        } ~
         get {
           pathPrefix("item" /  LongNumber){ id =>
             val maybeItem: Future[Option[Item]] = fetchItem(id)

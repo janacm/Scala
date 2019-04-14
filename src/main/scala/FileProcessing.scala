@@ -1,11 +1,12 @@
 import java.io.{BufferedOutputStream, IOException, OutputStream, PrintWriter}
-import java.nio.file.{Files, Path, Paths }
+import java.nio.file.{Files, Path, Paths}
+import java.util.stream
 
 
 /**
   * 1) Creates 3 folders (if not exists):
   *  i) ./input - Contains the files to be sent to the client
-  *  ii) ./toMerge - Contains the slices of the original file that has now been split
+  *  ii) ./splitFiles - Contains the slices of the original file that has now been split
   *  ii) ./output - contains the file which has been merged back together
   */
 object FileProcessing extends App{
@@ -13,18 +14,18 @@ object FileProcessing extends App{
   println("File processing started")
   createDirs()
 
-//  Creates folders needed for splitting and merging
-def createDirs(): Unit = {
-  val inputPath     = Paths.get("./input")
-  val splitFilesPath= Paths.get("./splitFiles")
-  val outputPath    = Paths.get("./output")
+  //  Creates folders needed for splitting and merging
+  def createDirs(): Unit = {
+    val inputPath     = Paths.get("./input")
+    val splitFilesPath= Paths.get("./splitFiles")
+    val outputPath    = Paths.get("./output")
 
-  if (Files.notExists(inputPath)) Files.createDirectory(inputPath)
-  if (Files.notExists(splitFilesPath)) Files.createDirectory(splitFilesPath)
-  if (Files.notExists(outputPath)) Files.createDirectory(outputPath)
-  println("Created dirs")
+    if (Files.notExists(inputPath)) Files.createDirectory(inputPath)
+    if (Files.notExists(splitFilesPath)) Files.createDirectory(splitFilesPath)
+    if (Files.notExists(outputPath)) Files.createDirectory(outputPath)
+    println("Created dirs")
 
-}
+  }
 
   def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit): Unit ={
     val p = new PrintWriter(f)
@@ -33,6 +34,7 @@ def createDirs(): Unit = {
   }
 
   /*
+  * TODO: This code belongs in the client
   * Takes all files in the toMergeFolder and combines them into one large file in the mergedFolder
   *
   * 1) Appends all of the files named input/file.txt.split# to output/file.txt
@@ -61,5 +63,29 @@ def createDirs(): Unit = {
       dirStream.close()
       mergedFileStream.close()
     }
+  }
+
+
+  /**
+    * Splits the file found in the ./inputFolder and puts them into the ./toMergeFolder
+    */
+  private def splitFiles(): Unit = {
+
+
+  }
+
+  /**
+    * returns num of split files
+    * @return
+    */
+  def getNumOfSplitFiles(): Int = {
+    val splitFilesPath= Paths.get("./splitFiles")
+    val fileList: stream.Stream[Path] = Files.list(splitFilesPath)
+    var total = 0
+    fileList.limit(5).forEach((item) => {
+      println(item)
+      total+=1
+    })
+    total
   }
 }
