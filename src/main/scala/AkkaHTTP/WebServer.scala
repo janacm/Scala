@@ -1,6 +1,7 @@
 import FileProcessing._
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 
@@ -18,9 +19,11 @@ object WebServer {
     //      Initiates parallel transfer, and file splitting.
       path("getFile") {
         get {
+          println("received GET: getFile ")
           splitFiles()
           val numOfSplits = getNumOfSplitFiles()
-          complete(numOfSplits.toString)
+          complete(1.toString)
+//          complete(HttpResponse(entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, ))
         }
       } ~
         path("query") {

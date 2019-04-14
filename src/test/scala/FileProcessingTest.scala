@@ -44,7 +44,7 @@ class FileProcessingTest extends FlatSpec with BeforeAndAfter{
 
   }
 
-  "split files" should "return the number of files that have been split" in {
+  "get num of split files" should "return the number of files that have been split" in {
     val numOfPieces = FileProcessing.getNumOfSplitFiles()
     assert(numOfPieces == 2)
   }
@@ -54,5 +54,28 @@ class FileProcessingTest extends FlatSpec with BeforeAndAfter{
     val numOfPieces = FileProcessing.getNumOfSplitFiles()
     assert(numOfPieces == 0)
   }
+
+  "split files" should "split a large file in the input directory" in {
+    clearSplitFiles()
+//    Make a large file over 100k lines
+    val largeFile = Paths.get("./input/t1.txt")
+    val out: OutputStream = new BufferedOutputStream(
+      Files.newOutputStream(largeFile)
+    )
+    try {
+      for ( i <- 0 to 100001 ) {
+        out.write((i.toString()+"\n").getBytes())
+      }
+    } finally {
+      out.close()
+    }
+
+    splitFiles()
+
+//    Should be split into two files
+    val numOfPieces = FileProcessing.getNumOfSplitFiles()
+    assert(numOfPieces == 2)
+  }
+
 
 }

@@ -1,4 +1,5 @@
 import java.io.{BufferedOutputStream, IOException, OutputStream, PrintWriter}
+import java.nio.channels.ClosedChannelException
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
 import java.util.stream
@@ -77,9 +78,41 @@ object FileProcessing extends App{
     * 4) Each new file has a Path: ./splitFiles/t1.txt.splitN where N = split number
     * 5) Split number increments until last file is reached
     *
+    * TODO: Future Improvements such as:
+    * - Make split size and file names configurable.
+    * - Allow for non-text files to split.
+    * - Use streams instead of reading whole file into memory
     */
   def splitFiles(): Unit = {
     clearSplitFiles()
+
+    val fileToSplit = Paths.get("./input/t1.txt")
+    try {
+      val itr = Files.readAllLines(fileToSplit).iterator()
+      var currentLine = 0
+      var currentSliceNumber = 0
+      var fileSliceOutputPath = Paths.get(s"./splitFiles/t1.txt.split$currentSliceNumber")
+      var out: OutputStream = new BufferedOutputStream( Files.newOutputStream(fileSliceOutputPath) )
+        // output lines to a new partial file
+      try {
+        while (itr.hasNext){
+          out.write(itr.next().getBytes() ++ "\n".getBytes())
+          currentLine += 1
+          if (currentLine % 100000 == 0) {
+            out.close()
+            // start new file slice
+            currentSliceNumber += 1
+            fileSliceOutputPath = Paths.get(s"./splitFiles/t1.txt.split$currentSliceNumber")
+            out = new BufferedOutputStream( Files.newOutputStream(fileSliceOutputPath) )
+          }
+        }
+      } catch {
+        case e: Throwable => println(s"Exception thrown during split file: $e")
+      } finally {
+        if (out != null) out.close()
+      }
+    }
+    println("Finished splitting files")
   }
 
 
@@ -92,7 +125,7 @@ object FileProcessing extends App{
         FileVisitResult.CONTINUE
       }
     })
-
+    println("Cleared split files folder")
   }
 
   /**
