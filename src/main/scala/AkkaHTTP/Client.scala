@@ -17,7 +17,7 @@ object Client {
     implicit val materializer = ActorMaterializer()
     implicit val executionContext = system.dispatcher
 
-    val getAkkaWebsite = HttpRequest(uri = "https://akka.io")
+    val getAkkaWebsite = HttpRequest(uri = "http://localhost:8080/item/1")
 
     val responseFuture: Future[HttpResponse] = Http()
       .singleRequest(getAkkaWebsite)
