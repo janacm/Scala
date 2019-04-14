@@ -1,5 +1,6 @@
 import java.io.{BufferedOutputStream, IOException, OutputStream, PrintWriter}
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file._
 import java.util.stream
 
 
@@ -68,9 +69,29 @@ object FileProcessing extends App{
 
   /**
     * Splits the file found in the ./inputFolder and puts them into the ./toMergeFolder
+    * Assumption: File is small enough to be read into memory
+    *
+    * 1) Clears ./splitFiles directory
+    * 2) Reads the file from ./input/t1.txt
+    * 3) For every 100k lines, it outputs into a new file
+    * 4) Each new file has a Path: ./splitFiles/t1.txt.splitN where N = split number
+    * 5) Split number increments until last file is reached
+    *
     */
-  private def splitFiles(): Unit = {
+  def splitFiles(): Unit = {
+    clearSplitFiles()
+  }
 
+
+  //    Clear existing split files directory
+  def clearSplitFiles(): Unit = {
+    val splitFilesPath= Paths.get("./splitFiles")
+    Files.walkFileTree(splitFilesPath, new SimpleFileVisitor[Path] {
+      override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
+        Files.delete(file)
+        FileVisitResult.CONTINUE
+      }
+    })
 
   }
 
@@ -82,7 +103,7 @@ object FileProcessing extends App{
     val splitFilesPath= Paths.get("./splitFiles")
     val fileList: stream.Stream[Path] = Files.list(splitFilesPath)
     var total = 0
-    fileList.limit(5).forEach((item) => {
+    fileList.limit(5).forEach(item => {
       println(item)
       total+=1
     })

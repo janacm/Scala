@@ -49,4 +49,10 @@ class FileProcessingTest extends FlatSpec with BeforeAndAfter{
     assert(numOfPieces == 2)
   }
 
+  "clear split files" should "delete all files in the splitFiles directory" in {
+    clearSplitFiles()
+    val numOfPieces = FileProcessing.getNumOfSplitFiles()
+    assert(numOfPieces == 0)
+  }
+
 }
