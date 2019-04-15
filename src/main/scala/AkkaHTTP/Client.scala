@@ -2,9 +2,10 @@ package AkkaHTTP
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest, HttpResponse}
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.ContentNegotiator.Alternative.ContentType
 import akka.stream.ActorMaterializer
+import akka.util.ByteString
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
@@ -27,12 +28,13 @@ object Client {
 
     val getFile: Future[HttpResponse] = Http().singleRequest(getFileRequest)
     var numOfFileSplits = 0
-    getFile.onComplete {
+    getFile.onComplete{
       case Success(value: HttpResponse) =>
-//        numOfFileSplits = value.toString().toInt
-//        println(s"valueeeeeee = ${value.toString().toInt}")
-        println(s"valueeeeeee = ${value.toString()}")
-        println(s"Got number of file splits: $numOfFileSplits")
+        value.entity.dataBytes.runFold(ByteString(""))(_ ++ _).foreach { body =>
+          numOfFileSplits = body.utf8String.toString().toInt
+          println(s"Got number of file splits: $numOfFileSplits")
+
+        }
 
       case Failure(exception) => sys.error("Something wrong during initial getFile request")
     }

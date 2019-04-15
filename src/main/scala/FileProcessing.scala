@@ -1,7 +1,6 @@
 import java.io.{BufferedOutputStream, IOException, OutputStream, PrintWriter}
-import java.nio.channels.ClosedChannelException
-import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file._
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream
 
 
@@ -87,13 +86,13 @@ object FileProcessing extends App{
     clearSplitFiles()
 
     val fileToSplit = Paths.get("./input/t1.txt")
-    try {
+    if (Files.exists(fileToSplit)){
       val itr = Files.readAllLines(fileToSplit).iterator()
       var currentLine = 0
       var currentSliceNumber = 0
       var fileSliceOutputPath = Paths.get(s"./splitFiles/t1.txt.split$currentSliceNumber")
       var out: OutputStream = new BufferedOutputStream( Files.newOutputStream(fileSliceOutputPath) )
-        // output lines to a new partial file
+      // output lines to a new partial file
       try {
         while (itr.hasNext){
           out.write(itr.next().getBytes() ++ "\n".getBytes())
@@ -111,8 +110,10 @@ object FileProcessing extends App{
       } finally {
         if (out != null) out.close()
       }
+      println("Finished splitting files")
+    } else {
+      println(s"Cannot split non-existent file: $fileToSplit")
     }
-    println("Finished splitting files")
   }
 
 
