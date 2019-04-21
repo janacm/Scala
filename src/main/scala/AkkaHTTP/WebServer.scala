@@ -1,3 +1,5 @@
+package AkkaHTTP
+
 import JanacLibraries.FileProcessor
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
@@ -13,6 +15,8 @@ object WebServer {
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
   var fileProcessor = new FileProcessor()
 
+  val filename: String = "t1.txt"
+
   def main(args: Array[String]): Unit ={
 
     val route=
@@ -20,8 +24,8 @@ object WebServer {
       path("getFile") {
         get {
           println("received GET: /getFile ")
-          fileProcessor.splitFiles()
-          val numOfSplits = fileProcessor.getNumOfSplitFiles()
+          fileProcessor.splitFiles(filename)
+          val numOfSplits = fileProcessor.getNumOfSplitFiles
           println(s"numOfSplits = $numOfSplits")
           complete(numOfSplits.toString)
         }
@@ -34,7 +38,6 @@ object WebServer {
                 val fileSliceOutputPath = fileProcessor.server_splitFilesPath
                   .resolve(s"t1.txt.split$sliceNumber")
                 getFromFile(fileSliceOutputPath.toString)
-//                complete(s"sliceNumber: $sliceNumber ")
             }
           }
         }

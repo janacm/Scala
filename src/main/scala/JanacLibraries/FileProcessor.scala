@@ -6,29 +6,28 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream
 
 
-/**
-  * 1) Creates 3 folders (if not exists):
-  *  i) ./input - Contains the files to be sent to the client
-  *  ii) ./splitFiles - Contains the slices of the original file that has now been split
-  *  ii) ./output - contains the file which has been merged back together
-  */
 class FileProcessor extends {
 
   println("File processing started")
 
-  val inputPath: Path =       Paths.get("./input")
+  val serverInputPath: Path =       Paths.get("./server_input")
   val server_splitFilesPath: Path =  Paths.get("./server_splitFiles")
   val client_splitFilesPath: Path =  Paths.get("./client_splitFiles")
-  val outputPath: Path =      Paths.get("./output")
+  val clientOutputPath: Path =      Paths.get("./client_output")
 
-  //  Creates folders needed for splitting and merging
+  /**
+    * 1) Creates 4 folders (if non-existant):
+    *  i)   ./server_input - Contains the files to be sent to the client
+    *  ii)  ./server_splitFiles - Contains slices of the file to be sent to the client
+    *  iii) ./client_splitFiles - Contains slices received by the client
+    *  iv)  ./client_output - contains the file which has been merged back together by the client
+    */
   def createDirs(): Unit = {
-
-    if (Files.notExists(inputPath)) Files.createDirectory(inputPath)
+    if (Files.notExists(serverInputPath)) Files.createDirectory(serverInputPath)
     if (Files.notExists(server_splitFilesPath)) Files.createDirectory(server_splitFilesPath)
-    if (Files.notExists(outputPath)) Files.createDirectory(outputPath)
+    if (Files.notExists(client_splitFilesPath)) Files.createDirectory(client_splitFilesPath)
+    if (Files.notExists(clientOutputPath)) Files.createDirectory(clientOutputPath)
     println("Created dirs")
-
   }
 
   def printToFile(f: java.io.File)(op: java.io.PrintWriter => Unit): Unit ={
@@ -40,15 +39,16 @@ class FileProcessor extends {
   /*
   * Takes all files in the toMergeFolder and combines them into one large file in the mergedFolder
   *
-  * 1) Appends all of the files named input/file.txt.split# to output/file.txt
+  * 1) Appends all of the files named server_input/file.txt.split# to output/file.txt
   * 2) Clears ./splitFiles directory using deleteIfExists, to avoid throwing exceptions
   *
   * This code is called by the Client
   * */
-  def mergeFiles(): Unit = {
-    val mergedFile: Path = Paths.get("output/t1.txt") // TODO: add file name generically
+  def mergeFiles(fileName: String): Unit = {
+    println("File merging started")
+    val mergedFile: Path = clientOutputPath.resolve(fileName) // TODO: add file name generically
     val mergedFileStream: OutputStream = new BufferedOutputStream(Files.newOutputStream(mergedFile))
-    val dirStream = Files.newDirectoryStream(server_splitFilesPath)
+    val dirStream = Files.newDirectoryStream(client_splitFilesPath)
 
     try {
       dirStream.forEach(file => {
@@ -67,16 +67,17 @@ class FileProcessor extends {
     } finally {
       dirStream.close()
       mergedFileStream.close()
+      println("Merging complete")
     }
   }
 
 
   /**
-    * Splits the file found in the ./inputFolder and puts them into the ./toMergeFolder
+    * Splits the file found in the ./server_input and puts them into the ./toMergeFolder
     * Assumption: File is small enough to be read into memory
     *
     * 1) Clears ./splitFiles directory
-    * 2) Reads the file from ./input/t1.txt
+    * 2) Reads the file from ./server_input/t1.txt
     * 3) For every 100k lines, it outputs into a new file
     * 4) Each new file has a Path: ./splitFiles/t1.txt.splitN where N = split number
     * 5) Split number increments until last file is reached
@@ -86,10 +87,11 @@ class FileProcessor extends {
     * - Allow for non-text files to split.
     * - Use streams instead of reading whole file into memory
     */
-  def splitFiles(): Unit = {
+  def splitFiles(filename: String): Unit = {
     clearSplitFiles()
+    println(s"Splitting files in $server_splitFilesPath")
 
-    val fileToSplit = Paths.get("./input/t1.txt")
+    val fileToSplit = serverInputPath.resolve(filename)
     if (Files.exists(fileToSplit)){
       val itr = Files.readAllLines(fileToSplit).iterator()
       var currentLine = 0
@@ -136,10 +138,14 @@ class FileProcessor extends {
     * returns num of split files
     * @return
     */
-  def getNumOfSplitFiles(): Int = {
-    val fileList: stream.Stream[Path] = Files.list(server_splitFilesPath)
+  def getNumOfSplitFiles: Int = {
+    getNumOfFilesInPath(server_splitFilesPath)
+  }
+
+  def getNumOfFilesInPath(p: Path): Int = {
+    val fileList: stream.Stream[Path] = Files.list(p)
     var total = 0
-    fileList.limit(5).forEach(item => {
+      fileList.forEach(item => {
       println(item)
       total+=1
     })
