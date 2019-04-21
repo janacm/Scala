@@ -18,17 +18,13 @@ object AkkaStreams extends App {
   val source1to100: Source[Int, NotUsed] = Source(1 to 100)
 //  val done: Future[Done] = source1to100.runForeach(i => println(i))(materializer)
 
-  val factorials = source1to100.scan(BigInt(1))((acc, next) => acc * next)
+
+  val factorials: Source[BigInt, NotUsed] = source1to100.scan(BigInt(1))((acc, next) => acc * next)
   val result: Future[IOResult] = factorials.map(num => ByteString(s"$num\n"))
     .runWith(
       FileIO.toPath(
-//        Paths.get("splitFilesClient/factorials.txt"),
-        Paths.get("./splitFiles/factorials.txt"),
-//        Paths.get("factorials.txt"),
-        Set(StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+        Paths.get("client_splitFiles/factorials.txt"),
       )
     )
-  //    .runWith(FileIO.toPath(Paths.get("factorials2.txt")))
 
-  //  val splitFilesDescription =
 }

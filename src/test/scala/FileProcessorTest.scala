@@ -1,12 +1,12 @@
 import java.io.{BufferedOutputStream, OutputStream}
 import java.nio.file.{Files, Paths}
 
-import JanacLibraries.FileProcessing
+import JanacLibraries.FileProcessor
 import org.scalatest.{BeforeAndAfter, FlatSpec}
 
 
-class FileProcessingTest extends FlatSpec with BeforeAndAfter{
-  val f = new FileProcessing()
+class FileProcessorTest extends FlatSpec with BeforeAndAfter{
+  val f = new FileProcessor()
 
 /*
  * Create files needed for tests:
@@ -77,6 +77,10 @@ class FileProcessingTest extends FlatSpec with BeforeAndAfter{
 //    Should be split into two files
     val numOfPieces = f.getNumOfSplitFiles()
     assert(numOfPieces == 2)
+  }
+
+  after {
+    f.clearSplitFiles()
   }
 
 

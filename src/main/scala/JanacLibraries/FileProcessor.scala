@@ -12,19 +12,20 @@ import java.util.stream
   *  ii) ./splitFiles - Contains the slices of the original file that has now been split
   *  ii) ./output - contains the file which has been merged back together
   */
-class FileProcessing extends {
+class FileProcessor extends {
 
   println("File processing started")
 
   val inputPath: Path =       Paths.get("./input")
-  val splitFilesPath: Path =  Paths.get("./server_splitFiles")
+  val server_splitFilesPath: Path =  Paths.get("./server_splitFiles")
+  val client_splitFilesPath: Path =  Paths.get("./client_splitFiles")
   val outputPath: Path =      Paths.get("./output")
 
   //  Creates folders needed for splitting and merging
   def createDirs(): Unit = {
 
     if (Files.notExists(inputPath)) Files.createDirectory(inputPath)
-    if (Files.notExists(splitFilesPath)) Files.createDirectory(splitFilesPath)
+    if (Files.notExists(server_splitFilesPath)) Files.createDirectory(server_splitFilesPath)
     if (Files.notExists(outputPath)) Files.createDirectory(outputPath)
     println("Created dirs")
 
@@ -47,7 +48,7 @@ class FileProcessing extends {
   def mergeFiles(): Unit = {
     val mergedFile: Path = Paths.get("output/t1.txt") // TODO: add file name generically
     val mergedFileStream: OutputStream = new BufferedOutputStream(Files.newOutputStream(mergedFile))
-    val dirStream = Files.newDirectoryStream(splitFilesPath)
+    val dirStream = Files.newDirectoryStream(server_splitFilesPath)
 
     try {
       dirStream.forEach(file => {
@@ -93,7 +94,7 @@ class FileProcessing extends {
       val itr = Files.readAllLines(fileToSplit).iterator()
       var currentLine = 0
       var currentSliceNumber = 0
-      var fileSliceOutputPath = splitFilesPath.resolve(s"t1.txt.split$currentSliceNumber")
+      var fileSliceOutputPath = server_splitFilesPath.resolve(s"t1.txt.split$currentSliceNumber")
       var out: OutputStream = new BufferedOutputStream( Files.newOutputStream(fileSliceOutputPath) )
       // output lines to a new partial file
       try {
@@ -104,7 +105,7 @@ class FileProcessing extends {
             out.close()
             // start new file slice
             currentSliceNumber += 1
-            fileSliceOutputPath = splitFilesPath.resolve(s"t1.txt.split$currentSliceNumber")
+            fileSliceOutputPath = server_splitFilesPath.resolve(s"t1.txt.split$currentSliceNumber")
             out = new BufferedOutputStream( Files.newOutputStream(fileSliceOutputPath) )
           }
         }
@@ -122,7 +123,7 @@ class FileProcessing extends {
 
   //    Clear existing split files directory
   def clearSplitFiles(): Unit = {
-    Files.walkFileTree(splitFilesPath, new SimpleFileVisitor[Path] {
+    Files.walkFileTree(server_splitFilesPath, new SimpleFileVisitor[Path] {
       override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
         Files.delete(file)
         FileVisitResult.CONTINUE
@@ -136,7 +137,7 @@ class FileProcessing extends {
     * @return
     */
   def getNumOfSplitFiles(): Int = {
-    val fileList: stream.Stream[Path] = Files.list(splitFilesPath)
+    val fileList: stream.Stream[Path] = Files.list(server_splitFilesPath)
     var total = 0
     fileList.limit(5).forEach(item => {
       println(item)

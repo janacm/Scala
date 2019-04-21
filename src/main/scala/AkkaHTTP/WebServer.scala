@@ -1,4 +1,4 @@
-import JanacLibraries.FileProcessing
+import JanacLibraries.FileProcessor
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
@@ -11,7 +11,7 @@ object WebServer {
   implicit val system: ActorSystem = ActorSystem("janacSystem")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
-  var fileProcessor = new FileProcessing()
+  var fileProcessor = new FileProcessor()
 
   def main(args: Array[String]): Unit ={
 
@@ -19,17 +19,21 @@ object WebServer {
     //      Initiates parallel transfer, and file splitting.
       path("getFile") {
         get {
-          println("received GET: getFile ")
+          println("received GET: /getFile ")
           fileProcessor.splitFiles()
           val numOfSplits = fileProcessor.getNumOfSplitFiles()
+          println(s"numOfSplits = $numOfSplits")
           complete(numOfSplits.toString)
         }
       } ~
-        path("query") {
+        path("query") { //response: a file slice as specified by the query param
           get {
-            parameters('sliceNumber.as[String]) { //returns a file slice as response
+            parameters('sliceNumber.as[String]) {
               sliceNumber =>
-                getFromFile(s"./splitFiles/t1.txt.split$sliceNumber")
+                println(s"Received GET: /query with slice number: $sliceNumber")
+                val fileSliceOutputPath = fileProcessor.server_splitFilesPath
+                  .resolve(s"t1.txt.split$sliceNumber")
+                getFromFile(fileSliceOutputPath.toString)
 //                complete(s"sliceNumber: $sliceNumber ")
             }
           }
