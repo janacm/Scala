@@ -1,7 +1,6 @@
-import FileProcessing._
+import JanacLibraries.FileProcessing
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse}
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
 
@@ -12,6 +11,7 @@ object WebServer {
   implicit val system: ActorSystem = ActorSystem("janacSystem")
   implicit val materializer: ActorMaterializer = ActorMaterializer()
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
+  var fileProcessor = new FileProcessing()
 
   def main(args: Array[String]): Unit ={
 
@@ -20,17 +20,17 @@ object WebServer {
       path("getFile") {
         get {
           println("received GET: getFile ")
-          splitFiles()
-          val numOfSplits = getNumOfSplitFiles()
-          complete(1.toString)
-//          complete(HttpResponse(entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, ))
+          fileProcessor.splitFiles()
+          val numOfSplits = fileProcessor.getNumOfSplitFiles()
+          complete(numOfSplits.toString)
         }
       } ~
         path("query") {
           get {
-            parameters('sliceNumber.as[String]) {
+            parameters('sliceNumber.as[String]) { //returns a file slice as response
               sliceNumber =>
-                complete(s"sliceNumber: $sliceNumber ")
+                getFromFile(s"./splitFiles/t1.txt.split$sliceNumber")
+//                complete(s"sliceNumber: $sliceNumber ")
             }
           }
         }

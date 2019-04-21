@@ -1,3 +1,5 @@
+package JanacLibraries
+
 import java.io.{BufferedOutputStream, IOException, OutputStream, PrintWriter}
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
@@ -10,16 +12,16 @@ import java.util.stream
   *  ii) ./splitFiles - Contains the slices of the original file that has now been split
   *  ii) ./output - contains the file which has been merged back together
   */
-object FileProcessing extends App{
+class FileProcessing extends {
 
   println("File processing started")
-  createDirs()
+
+  val inputPath: Path =       Paths.get("./input")
+  val splitFilesPath: Path =  Paths.get("./server_splitFiles")
+  val outputPath: Path =      Paths.get("./output")
 
   //  Creates folders needed for splitting and merging
   def createDirs(): Unit = {
-    val inputPath     = Paths.get("./input")
-    val splitFilesPath= Paths.get("./splitFiles")
-    val outputPath    = Paths.get("./output")
 
     if (Files.notExists(inputPath)) Files.createDirectory(inputPath)
     if (Files.notExists(splitFilesPath)) Files.createDirectory(splitFilesPath)
@@ -35,16 +37,17 @@ object FileProcessing extends App{
   }
 
   /*
-  * TODO: This code belongs in the client
   * Takes all files in the toMergeFolder and combines them into one large file in the mergedFolder
   *
   * 1) Appends all of the files named input/file.txt.split# to output/file.txt
   * 2) Clears ./splitFiles directory using deleteIfExists, to avoid throwing exceptions
+  *
+  * This code is called by the Client
   * */
   def mergeFiles(): Unit = {
     val mergedFile: Path = Paths.get("output/t1.txt") // TODO: add file name generically
     val mergedFileStream: OutputStream = new BufferedOutputStream(Files.newOutputStream(mergedFile))
-    val dirStream = Files.newDirectoryStream(Paths.get("splitFiles"))
+    val dirStream = Files.newDirectoryStream(splitFilesPath)
 
     try {
       dirStream.forEach(file => {
@@ -90,7 +93,7 @@ object FileProcessing extends App{
       val itr = Files.readAllLines(fileToSplit).iterator()
       var currentLine = 0
       var currentSliceNumber = 0
-      var fileSliceOutputPath = Paths.get(s"./splitFiles/t1.txt.split$currentSliceNumber")
+      var fileSliceOutputPath = splitFilesPath.resolve(s"t1.txt.split$currentSliceNumber")
       var out: OutputStream = new BufferedOutputStream( Files.newOutputStream(fileSliceOutputPath) )
       // output lines to a new partial file
       try {
@@ -101,7 +104,7 @@ object FileProcessing extends App{
             out.close()
             // start new file slice
             currentSliceNumber += 1
-            fileSliceOutputPath = Paths.get(s"./splitFiles/t1.txt.split$currentSliceNumber")
+            fileSliceOutputPath = splitFilesPath.resolve(s"t1.txt.split$currentSliceNumber")
             out = new BufferedOutputStream( Files.newOutputStream(fileSliceOutputPath) )
           }
         }
@@ -119,7 +122,6 @@ object FileProcessing extends App{
 
   //    Clear existing split files directory
   def clearSplitFiles(): Unit = {
-    val splitFilesPath= Paths.get("./splitFiles")
     Files.walkFileTree(splitFilesPath, new SimpleFileVisitor[Path] {
       override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
         Files.delete(file)
@@ -134,7 +136,6 @@ object FileProcessing extends App{
     * @return
     */
   def getNumOfSplitFiles(): Int = {
-    val splitFilesPath= Paths.get("./splitFiles")
     val fileList: stream.Stream[Path] = Files.list(splitFilesPath)
     var total = 0
     fileList.limit(5).forEach(item => {
