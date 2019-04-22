@@ -4,8 +4,8 @@ import JanacLibraries.FileProcessor
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
-import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.FileIO
+import akka.stream.{ActorMaterializer, IOResult}
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.util.{Failure, Success}
@@ -32,7 +32,7 @@ object Client {
       *
       * Note: Defined as nested function to allow access to implicit vals above
       */
-    def sendGetFileRequest(): Unit ={
+    def sendGetFileRequest(): Unit = {
       val getFileRequest = HttpRequest(
         method = HttpMethods.GET,
         uri = s"http://localhost:8080/getFile",
@@ -68,16 +68,19 @@ object Client {
         val getFile: Future[HttpResponse] = Http().singleRequest(getFileRequest)
         getFile.onComplete{
           case Success(value) =>
-            println("Request successful!")
-            value.entity.dataBytes.runWith(
-              FileIO.toPath(fileProcessor.client_splitFilesPath
-                .resolve(s"$filename.split$i"))
+            println("Async GET request successful!")
+            val eventualResult: Future[IOResult] = value.entity.dataBytes.runWith(
+              FileIO.toPath(
+                fileProcessor.client_splitFilesPath.resolve(s"$filename.split$i"),
+              )
             )
-            numOfRequestsCompleted+=1
-            if (numOfRequestsCompleted == numOfFileSplits){
-              println("All file slices received! Proceeding to merge files...")
-              fileProcessor.mergeFiles(filename)
-            }
+            eventualResult.onComplete( Done => {
+              numOfRequestsCompleted+=1
+              if (numOfRequestsCompleted == numOfFileSplits){
+                println("All file slices received! Proceeding to merge files...")
+                fileProcessor.mergeFiles(filename)
+              }
+            })
           case Failure(exception) => sys.error(s"Something wrong during async getFile requests: $exception")
         }
       }

@@ -37,12 +37,11 @@ class FileProcessor extends {
   }
 
   /*
-  * Takes all files in the toMergeFolder and combines them into one large file in the mergedFolder
+  * Takes all files from ./client_splitFiles with filename file.txt.split# and
+  * combines them into one large file into ./clientOutput/file.txt
   *
-  * 1) Appends all of the files named server_input/file.txt.split# to output/file.txt
-  * 2) Clears ./splitFiles directory using deleteIfExists, to avoid throwing exceptions
-  *
-  * This code is called by the Client
+  * Clears ./splitFiles directory using deleteIfExists, to avoid throwing exceptions
+  * This code is triggered by the Client
   * */
   def mergeFiles(fileName: String): Unit = {
     println("File merging started")
@@ -52,6 +51,7 @@ class FileProcessor extends {
 
     try {
       dirStream.forEach(file => {
+        println(s"Current file: $file")
         val it = Files.readAllLines(file).iterator()
         var currentSplitFile = ""
         while (it.hasNext){
@@ -61,6 +61,7 @@ class FileProcessor extends {
         }
         val splitAsBytes = currentSplitFile.getBytes()
 
+        println("Writing to output...")
         mergedFileStream.write(splitAsBytes, 0, splitAsBytes.length)
       })
     } catch {
