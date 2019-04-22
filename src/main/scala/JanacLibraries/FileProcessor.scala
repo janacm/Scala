@@ -46,7 +46,7 @@ class FileProcessor extends {
   * */
   def mergeFiles(fileName: String): Unit = {
     println("File merging started")
-    val mergedFile: Path = clientOutputPath.resolve(fileName) // TODO: add file name generically
+    val mergedFile: Path = clientOutputPath.resolve(fileName)
     val mergedFileStream: OutputStream = new BufferedOutputStream(Files.newOutputStream(mergedFile))
     val dirStream = Files.newDirectoryStream(client_splitFilesPath)
 
@@ -55,7 +55,9 @@ class FileProcessor extends {
         val it = Files.readAllLines(file).iterator()
         var currentSplitFile = ""
         while (it.hasNext){
-          currentSplitFile += it.next()
+          val currentLine = it.next()
+          currentSplitFile += (currentLine + "\n")
+          println(s"Merging currentLine: $currentLine")
         }
         val splitAsBytes = currentSplitFile.getBytes()
 
@@ -88,8 +90,8 @@ class FileProcessor extends {
     * - Use streams instead of reading whole file into memory
     */
   def splitFiles(filename: String): Unit = {
-    clearSplitFiles()
-    println(s"Splitting files in $server_splitFilesPath")
+    clearDir(server_splitFilesPath)
+    println(s"Splitting file: '$filename' in $serverInputPath")
 
     val fileToSplit = serverInputPath.resolve(filename)
     if (Files.exists(fileToSplit)){
@@ -103,7 +105,7 @@ class FileProcessor extends {
         while (itr.hasNext){
           out.write(itr.next().getBytes() ++ "\n".getBytes())
           currentLine += 1
-          if (currentLine % 100000 == 0) {
+          if (currentLine % 10000 == 0) {
             out.close()
             // start new file slice
             currentSliceNumber += 1
@@ -124,8 +126,8 @@ class FileProcessor extends {
 
 
   //    Clear existing split files directory
-  def clearSplitFiles(): Unit = {
-    Files.walkFileTree(server_splitFilesPath, new SimpleFileVisitor[Path] {
+  def clearDir(p: Path): Unit = {
+    Files.walkFileTree(p, new SimpleFileVisitor[Path] {
       override def visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult = {
         Files.delete(file)
         FileVisitResult.CONTINUE
@@ -145,7 +147,7 @@ class FileProcessor extends {
   def getNumOfFilesInPath(p: Path): Int = {
     val fileList: stream.Stream[Path] = Files.list(p)
     var total = 0
-      fileList.forEach(item => {
+    fileList.forEach(item => {
       println(item)
       total+=1
     })

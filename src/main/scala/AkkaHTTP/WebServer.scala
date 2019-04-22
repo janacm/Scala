@@ -18,6 +18,7 @@ object WebServer {
   val filename: String = "t1.txt"
 
   def main(args: Array[String]): Unit ={
+    fileProcessor.createDirs()
 
     val route=
     //      Initiates parallel transfer, and file splitting.
